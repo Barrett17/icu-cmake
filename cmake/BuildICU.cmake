@@ -40,22 +40,6 @@ endif()
 # set variables
 ProcessorCount(NUM_JOBS)
 
-# try to compile icu
-string(REPLACE "." "_" ICU_URL_VERSION ${ICU_BUILD_VERSION})
-set(ICU_URL https://mirror.viaduck.org/icu/icu4c-${ICU_URL_VERSION}-src.tgz)
-
-if (ICU_BUILD_HASH)
-    set(ICU_CHECK_HASH EXPECTED_HASH SHA256=${ICU_BUILD_HASH})
-endif()
-
-# download and unpack if needed
-if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/icu)
-    message(STATUS "Using existing ICU source")
-else()
-    file(DOWNLOAD ${ICU_URL} ${CMAKE_CURRENT_BINARY_DIR}/icu_src.tgz SHOW_PROGRESS ${ICU_CHECK_HASH})
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar x ${CMAKE_CURRENT_BINARY_DIR}/icu_src.tgz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-endif()
-
 # if we are actually building for host, use cmake params for it
 if (NOT ICU_CROSS_ARCH)
     set(HOST_CFLAGS "${CMAKE_C_FLAGS}")
@@ -78,13 +62,14 @@ endif()
 
 ExternalProject_Add(
         icu_host
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu
-        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu_host-build
+        GIT_REPOSITORY https://github.com/unicode-org/icu.git
+        GIT_TAG release-57-2
+        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu_host-prefix/src/icu_host/icu4c/
         PATCH_COMMAND ${PATCH_PROGRAM} -p1 --forward -r - < ${CMAKE_CURRENT_SOURCE_DIR}/patches/0010-fix-pkgdata-suffix.patch || true
-        CONFIGURE_COMMAND ${HOST_ENV_CMAKE} <SOURCE_DIR>/source/configure --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/icu_host --libdir=${CMAKE_CURRENT_BINARY_DIR}/icu_host/lib/
-        BUILD_COMMAND ${HOST_ENV_CMAKE} ${MAKE_PROGRAM} -j ${NUM_JOBS}
+        CONFIGURE_COMMAND <SOURCE_DIR>/icu4c/source/configure --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/icu_host --libdir=${CMAKE_CURRENT_BINARY_DIR}/icu_host/lib/
+        BUILD_COMMAND ${MAKE_PROGRAM} -j ${NUM_JOBS}
         BUILD_BYPRODUCTS ${ICU_LIBRARIES}
-        INSTALL_COMMAND ${HOST_ENV_CMAKE} ${MAKE_PROGRAM} install
+        INSTALL_COMMAND ${MAKE_PROGRAM} install
 )
 set(ICU_TARGET icu_host)
 add_dependencies(icu icu_host)
@@ -126,7 +111,7 @@ if (ICU_CROSS_ARCH)
     ExternalProject_Add(
             icu_cross
             DEPENDS icu_host
-            SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu
+            SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu-release-57-1/icu4c/
             BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu_cross-build
             PATCH_COMMAND ${PATCH_PROGRAM} -p1 --forward -r - < ${CMAKE_CURRENT_SOURCE_DIR}/patches/0023-remove-soname-version.patch || true
             CONFIGURE_COMMAND ${CROSS_ENV_CMAKE} sh <SOURCE_DIR>/source/configure --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/icu_cross
