@@ -40,12 +40,6 @@ endif()
 # set variables
 ProcessorCount(NUM_JOBS)
 
-# download and unpack if needed
-if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/icu_host/lib/)
-    message(STATUS "Using existing ICU source")
-    return()
-endif()
-
 # if we are actually building for host, use cmake params for it
 if (NOT ICU_CROSS_ARCH)
     set(HOST_CFLAGS "${CMAKE_C_FLAGS}")
@@ -66,11 +60,18 @@ if (NOT ICU_CROSS_ARCH)
     GetICUByproducts(${CMAKE_CURRENT_BINARY_DIR}/icu_host ICU_LIBRARIES ICU_INCLUDE_DIRS)
 endif()
 
+# download and unpack if needed
+if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/icu_host/lib/)
+    message(STATUS "Using existing ICU source")
+    return()
+endif()
+
 ExternalProject_Add(
         icu_host
         GIT_REPOSITORY https://github.com/unicode-org/icu.git
         GIT_TAG release-57-2
         BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu_host-prefix/src/icu_host/icu4c/
+	
         PATCH_COMMAND ${PATCH_PROGRAM} -p1 --forward -r - < ${CMAKE_CURRENT_SOURCE_DIR}/patches/0010-fix-pkgdata-suffix.patch || true
         CONFIGURE_COMMAND <SOURCE_DIR>/icu4c/source/configure CFLAGS=-fPIC CXXFLAGS=-fPIC --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/icu_host --libdir=${CMAKE_CURRENT_BINARY_DIR}/icu_host/lib/
         BUILD_COMMAND ${MAKE_PROGRAM} CFLAGS=-fPIC CXXFLAGS=-fPIC -j ${NUM_JOBS}
