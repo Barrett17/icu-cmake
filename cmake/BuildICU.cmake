@@ -83,8 +83,8 @@ ExternalProject_Add(
 		SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu-release-57-2/icu4c/
 		BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/icu_host-prefix/
         PATCH_COMMAND ${PATCH_PROGRAM} -p1 --forward -r - < ${CMAKE_CURRENT_SOURCE_DIR}/patches/0010-fix-pkgdata-suffix.patch || true
-        CONFIGURE_COMMAND <SOURCE_DIR>/source/configure --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/icu_host --libdir=${CMAKE_CURRENT_BINARY_DIR}/icu_host/lib/
-        BUILD_COMMAND ${MAKE_PROGRAM} -j ${NUM_JOBS}
+        CONFIGURE_COMMAND <SOURCE_DIR>/source/configure CFLAGS=-fPIC CXXFLAGS=-fPIC --enable-static --prefix=${CMAKE_CURRENT_BINARY_DIR}/icu_host --libdir=${CMAKE_CURRENT_BINARY_DIR}/icu_host/lib/
+        BUILD_COMMAND ${MAKE_PROGRAM} CFLAGS=-fPIC CXXFLAGS=-fPIC -j ${NUM_JOBS}
         BUILD_BYPRODUCTS ${ICU_LIBRARIES}
         INSTALL_COMMAND ${MAKE_PROGRAM} install
 )

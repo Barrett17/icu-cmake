@@ -24,9 +24,9 @@
 cmake_minimum_required(VERSION 3.2)
 
 # cache variables
-set(BUILD_ICU OFF CACHE BOOL "Enable compilation of ICU")
-set(ICU_BUILD_VERSION OFF CACHE STRING "ICU version to build")
-set(ICU_STATIC OFF CACHE BOOL "Use static instead of shared ICU (does not work for system)")
+set(BUILD_ICU ON CACHE BOOL "Enable compilation of ICU")
+set(ICU_BUILD_VERSION 57.2 CACHE STRING "ICU version to build")
+set(ICU_STATIC ON CACHE BOOL "Use static instead of shared ICU (does not work for system)")
 set(ICU_CROSS_ARCH OFF CACHE STRING "Target triplet for ICU cross compile")
 set(SYSTEM_ICU OFF CACHE BOOL "Use system-provided icu libraries (instead of prebuilts or building")
 
